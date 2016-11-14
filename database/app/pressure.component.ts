@@ -1,3 +1,5 @@
+/// <reference path="../typings/socket-io.d.ts" />
+
 import {Component, ViewChild, ElementRef} from '@angular/core';
 import * as io from "socket.io-client";
 
@@ -47,6 +49,7 @@ export class PressureComponent {
     }
 
     updatePressure(pressureJSON): void {
+        if(!pressureJSON) return;
         for(var i in pressureJSON.p) {
             this.pressure[i] = pressureJSON.p[i];
         }
@@ -120,5 +123,7 @@ export class PressureComponent {
             var hue = (percentage * (hue1 - hue0)) + hue0;
             return 'hsl(' + hue + ', 100%, 50%)';
         }
+
+        //TODO Drucksensoren gehen von 0 bis 1024
     }
 }

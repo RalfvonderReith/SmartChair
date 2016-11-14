@@ -10,15 +10,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('@angular/core');
 var platform_browser_1 = require('@angular/platform-browser');
-var app_component_1 = require('./pressure.component.ts');
+var pressure_component_1 = require('./pressure.component');
+var temperature_component_1 = require('./temperature.component');
+var linechart_component_1 = require('./charts/linechart.component');
 var AppModule = (function () {
     function AppModule() {
     }
     AppModule = __decorate([
         core_1.NgModule({
             imports: [platform_browser_1.BrowserModule],
-            declarations: [app_component_1.PressureComponent, app_component_1.AppComponentTemperature],
-            bootstrap: [app_component_1.PressureComponent, app_component_1.AppComponentTemperature]
+            declarations: [pressure_component_1.PressureComponent, temperature_component_1.TemperatureComponent, linechart_component_1.LineChartComponent],
+            bootstrap: [pressure_component_1.PressureComponent, temperature_component_1.TemperatureComponent, linechart_component_1.LineChartComponent]
         }), 
         __metadata('design:paramtypes', [])
     ], AppModule);
