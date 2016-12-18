@@ -2453,7 +2453,7 @@
              Your function should return string.*/
             labelFunction(value: number, valueText: string, valueAxis: ValueAxis): string;
             labelFunction(valueText: string, data: Date, valueAxis: ValueAxis): string;
-            /** Specifies if this value axis' scale should be logarithmic. */
+            /** Specifies if this value axis' SCALE should be logarithmic. */
             logarithmic: boolean;
             /** Read-only. Maximum value of the axis. */
             max: number;
@@ -2467,7 +2467,7 @@
             minimum: number;
             /** If your value axis is date-based, you can specify minimum date of the axis. Can be set as date object, timestamp number or string if dataDateFormat is set. */
             minimumDate: Date;
-            /** If set value axis scale (min and max numbers) will be multiplied by it. I.e. if set to 1.2 the scope of values will increase by 20%. */
+            /** If set value axis SCALE (min and max numbers) will be multiplied by it. I.e. if set to 1.2 the scope of values will increase by 20%. */
             minMaxMultiplier: number;
             /** Works with radar charts only. If you set it to “middle”, labels and data points will be placed in the middle between axes. */
             pointPosition: string;

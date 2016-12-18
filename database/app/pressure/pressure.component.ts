@@ -92,7 +92,7 @@ export class PressureComponent implements OnInit {
 
     drawCanvasPressure(): void {
         let ctx: CanvasRenderingContext2D = this.pressureCanvas.nativeElement.getContext("2d");
-        //some variables to scale context correctly to canvas
+        //some variables to SCALE context correctly to canvas
         ctx.canvas.height = 2*ctx.canvas.width; //keep ratio to 2:3
         var disY = ctx.canvas.height / 6;
         var disX = ctx.canvas.width / 3;
@@ -103,7 +103,7 @@ export class PressureComponent implements OnInit {
 
         //draw chair outlines
         drawRoundRect(disX/2,disY/2,2*disX,3*disY,radius);
-        drawRoundRect(disX/2,3*disY+disY/2,2*disX,2*disY,radius);
+        drawRoundRe ct(disX/2,3*disY+disY/2,2*disX,2*disY,radius);
         drawRoundRect(0,3*disY+disY/2,disX/2,1.8*disY,radius);
         drawRoundRect(ctx.canvas.width-disX/2,3*disY+disY/2,disX/2,1.8*disY,radius);
 

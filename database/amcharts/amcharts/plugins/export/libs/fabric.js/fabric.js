@@ -3138,7 +3138,7 @@ if (typeof console !== 'undefined') {
                     commaWsp + '(' + number + ')' +
                     commaWsp + '(' + number + '))?\\s*\\))',
 
-        scale = '(?:(scale)\\s*\\(\\s*(' + number + ')(?:' +
+        scale = '(?:(SCALE)\\s*\\(\\s*(' + number + ')(?:' +
                     commaWsp + '(' + number + '))?\\s*\\))',
 
         translate = '(?:(translate)\\s*\\(\\s*(' + number + ')(?:' +
@@ -4343,7 +4343,7 @@ fabric.ElementsParser.prototype.checkIfDone = function() {
     },
 
     /**
-     * Returns distance from this point and another one
+     * Returns rotation from this point and another one
      * @param {fabric.Point} that
      * @return {Number}
      */
@@ -5488,7 +5488,7 @@ fabric.ElementsParser.prototype.checkIfDone = function() {
         object.rx !== object.ry) {
 
       var scaleFactor = object.ry/object.rx;
-      ellipseMatrix = ' scale(1, ' + scaleFactor + ')';
+      ellipseMatrix = ' SCALE(1, ' + scaleFactor + ')';
       if (options.y1) {
         options.y1 /= scaleFactor;
       }
@@ -6528,7 +6528,7 @@ fabric.Pattern = fabric.util.createClass(/** @lends fabric.Pattern.prototype */ 
      * @chainable true
      */
     zoomToPoint: function (point, value) {
-      // TODO: just change the scale, preserve other transformations
+      // TODO: just change the SCALE, preserve other transformations
       var before = point;
       point = fabric.util.transformPoint(point, fabric.util.invertTransform(this.viewportTransform));
       this.viewportTransform[0] = value;
@@ -8289,7 +8289,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
     uniScaleKey:           'shiftKey',
 
     /**
-     * When true, objects use center point as the origin of scale transformation.
+     * When true, objects use center point as the origin of SCALE transformation.
      * <b>Backwards incompatibility note:</b> This property replaces "centerTransform" (Boolean).
      * @since 1.3.4
      * @type Boolean
@@ -8627,7 +8627,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
       var t = this._currentTransform,
           centerTransform;
 
-      if (t.action === 'scale' || t.action === 'scaleX' || t.action === 'scaleY') {
+      if (t.action === 'SCALE' || t.action === 'scaleX' || t.action === 'scaleY') {
         centerTransform = this.centeredScaling || target.centeredScaling;
       }
       else if (t.action === 'rotate') {
@@ -8681,7 +8681,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
         case 'mb':
           return e[this.altActionKey] ? 'skewX' : 'scaleY';
         default:
-          return 'scale';
+          return 'SCALE';
       }
     },
 
@@ -8863,16 +8863,16 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
         newValue = 0;
       }
       else {
-        newValue = skewSign * Math.atan((newDimMouse / target['scale' + _by]) /
-                                        (dimNoSkew[otherBy] / target['scale' + _otherBy]));
+        newValue = skewSign * Math.atan((newDimMouse / target['SCALE' + _by]) /
+                                        (dimNoSkew[otherBy] / target['SCALE' + _otherBy]));
         newValue = fabric.util.radiansToDegrees(newValue);
       }
       skewed = target['skew' + _by] !== newValue;
       target.set('skew' + _by, newValue);
       if (target['skew' + _otherBy] !== 0) {
         newDim = target._getTransformedDimensions();
-        newValue = (_dim[otherBy] / newDim[otherBy]) * target['scale' + _otherBy];
-        target.set('scale' + _otherBy, newValue);
+        newValue = (_dim[otherBy] / newDim[otherBy]) * target['SCALE' + _otherBy];
+        target.set('SCALE' + _otherBy, newValue);
       }
       return skewed;
     },
@@ -8882,7 +8882,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
      * @private
      * @param {Number} x pointer's x coordinate
      * @param {Number} y pointer's y coordinate
-     * @param {String} by Either 'x' or 'y' - specifies dimension constraint by which to scale an object.
+     * @param {String} by Either 'x' or 'y' - specifies dimension constraint by which to SCALE an object.
      *                    When not provided, an object is scaled by both dimensions equally
      * @return {Boolean} true if the scaling occurred
      */
@@ -8904,7 +8904,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
 
       this._setLocalMouse(localMouse, t);
 
-      // Actually scale the object
+      // Actually SCALE the object
       scaled = this._setObjectScale(localMouse, t, lockScalingX, lockScalingY, by, lockScalingFlip, dim);
 
       // Make sure the constraints apply
@@ -8964,7 +8964,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
           scaled;
 
       // We use transform.scaleX/Y instead of target.scaleX/Y
-      // because the object may have a min scale and we'll loose the proportions
+      // because the object may have a min SCALE and we'll loose the proportions
       transform.newScaleX = transform.original.scaleX * dist / lastDist;
       transform.newScaleY = transform.original.scaleY * dist / lastDist;
       scaled = transform.newScaleX !== target.scaleX || transform.newScaleY !== target.scaleY;
@@ -9285,7 +9285,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
       }
 
       if (boundsWidth === 0 || boundsHeight === 0) {
-        // If bounds are not available (i.e. not visible), do not apply scale.
+        // If bounds are not available (i.e. not visible), do not apply SCALE.
         cssScale = { width: 1, height: 1 };
       }
       else {
@@ -10220,7 +10220,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
       if (action === 'rotate') {
         (actionPerformed = this._rotateObject(x, y)) && this._fire('rotating', target, e);
       }
-      else if (action === 'scale') {
+      else if (action === 'SCALE') {
         (actionPerformed = this._onScale(e, transform, x, y)) && this._fire('scaling', target, e);
       }
       else if (action === 'scaleX') {
@@ -10257,7 +10257,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
      * @private
      */
     _beforeScaleTransform: function(e, transform) {
-      if (transform.action === 'scale' || transform.action === 'scaleX' || transform.action === 'scaleY') {
+      if (transform.action === 'SCALE' || transform.action === 'scaleX' || transform.action === 'scaleY') {
         var centerTransform = this._shouldCenterTransform(transform.target);
 
         // Switch from a normal resize to center-based
@@ -10279,12 +10279,12 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
       // rotate object only if shift key is not pressed
       // and if it is not a group we are transforming
       if ((e[this.uniScaleKey] || this.uniScaleTransform) && !transform.target.get('lockUniScaling')) {
-        transform.currentAction = 'scale';
+        transform.currentAction = 'SCALE';
         return this._scaleObject(x, y);
       }
       else {
         // Switch from a normal resize to proportional
-        if (!transform.reset && transform.currentAction === 'scale') {
+        if (!transform.reset && transform.currentAction === 'SCALE') {
           this._resetCurrentTransform();
         }
 
@@ -11360,14 +11360,14 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     height:                   0,
 
     /**
-     * Object scale factor (horizontal)
+     * Object SCALE factor (horizontal)
      * @type Number
      * @default
      */
     scaleX:                   1,
 
     /**
-     * Object scale factor (vertical)
+     * Object SCALE factor (vertical)
      * @type Number
      * @default
      */
@@ -11620,7 +11620,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     transformMatrix:          null,
 
     /**
-     * Minimum allowed scale value of an object
+     * Minimum allowed SCALE value of an object
      * @type Number
      * @default
      */
@@ -11967,7 +11967,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
-     * Sets property to a given value. When changing position/dimension -related properties (left, top, scale, angle, etc.) `set` does not update position of object's borders/controls. If you need to update those, call `setCoords()`.
+     * Sets property to a given value. When changing position/dimension -related properties (left, top, SCALE, angle, etc.) `set` does not update position of object's borders/controls. If you need to update those, call `setCoords()`.
      * @param {String|Object} key Property name or object (if object, iterate over the object properties)
      * @param {Object|Function} value Property value (if function, the value is passed into it and its return value is used as a new one)
      * @return {fabric.Object} thisArg
@@ -13096,7 +13096,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
-     * Makes sure the scale is valid and modifies it if necessary
+     * Makes sure the SCALE is valid and modifies it if necessary
      * @private
      * @param {Number} value
      * @return {Number}
@@ -13182,7 +13182,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
           offsetX = Math.cos(_angle + theta) * _hypotenuse,
           offsetY = Math.sin(_angle + theta) * _hypotenuse,
 
-          // offset added for rotate and scale actions
+          // offset added for rotate and SCALE actions
           coords = fabric.util.transformPoint(this.getCenterPoint(), vpt),
           tl  = new fabric.Point(coords.x - offsetX, coords.y - offsetY),
           tr  = new fabric.Point(tl.x + (currentWidth * cosTh), tl.y + (currentWidth * sinTh)),
@@ -13217,7 +13217,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
         mtr: mtr
       };
 
-      // set coordinates of the draggable boxes in the corners used to scale/rotate the image
+      // set coordinates of the draggable boxes in the corners used to SCALE/rotate the image
       this._setCornerCoords && this._setCornerCoords();
 
       return this;
@@ -13432,7 +13432,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
 
           scalePart = (this.scaleX === 1 && this.scaleY === 1)
             ? '' :
-            (' scale(' +
+            (' SCALE(' +
               toFixed(this.scaleX, NUM_FRACTION_DIGITS) +
               ' ' +
               toFixed(this.scaleY, NUM_FRACTION_DIGITS) +
@@ -13605,7 +13605,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
 
     /**
      * Sets the coordinates of the draggable boxes in the corners of
-     * the image used to scale/rotate it.
+     * the image used to SCALE/rotate it.
      * @private
      */
     _setCornerCoords: function() {
@@ -14537,7 +14537,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
   };
 
   /**
-   * Produces a function that calculates distance from canvas edge to Line origin.
+   * Produces a function that calculates rotation from canvas edge to Line origin.
    */
   function makeEdgeToOriginGetter(propertyNames, originValues) {
     var origin = propertyNames.origin,
@@ -24541,12 +24541,12 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
     },
 
     /**
-     * When part of a group, we don't want the Textbox's scale to increase if
-     * the group's increases. That's why we reduce the scale of the Textbox by
+     * When part of a group, we don't want the Textbox's SCALE to increase if
+     * the group's increases. That's why we reduce the SCALE of the Textbox by
      * the amount that the group's increases. This is to maintain the effective
-     * scale of the Textbox at 1, so that font-size values make sense. Otherwise
+     * SCALE of the Textbox at 1, so that font-size values make sense. Otherwise
      * the same font-size value would result in different actual size depending
-     * on the value of the scale.
+     * on the value of the SCALE.
      * @param {String} key
      * @param {Any} value
      */
@@ -24689,7 +24689,7 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
 
   /**
    * Override _setObjectScale and add Textbox specific resizing behavior. Resizing
-   * a Textbox doesn't scale text, it only changes width and makes text wrap automatically.
+   * a Textbox doesn't SCALE text, it only changes width and makes text wrap automatically.
    */
   var setObjectScaleOverridden = fabric.Canvas.prototype._setObjectScale;
 

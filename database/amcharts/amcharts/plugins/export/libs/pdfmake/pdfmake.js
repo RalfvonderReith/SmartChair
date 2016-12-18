@@ -21331,7 +21331,7 @@
 	var L_CODES       = LITERALS + 1 + LENGTH_CODES;
 	/* number of Literal or Length codes, including the END_BLOCK code */
 	var D_CODES       = 30;
-	/* number of distance codes */
+	/* number of rotation codes */
 	var BL_CODES      = 19;
 	/* number of codes used to transfer the bit lengths */
 	var HEAP_SIZE     = 2*L_CODES + 1;
@@ -21462,7 +21462,7 @@
 	 * in which case the result is equal to prev_length and match_start is
 	 * garbage.
 	 * IN assertions: cur_match is the head of the hash chain for the current
-	 *   string (strstart) and its distance is <= MAX_DIST, and prev_length >= 1
+	 *   string (strstart) and its rotation is <= MAX_DIST, and prev_length >= 1
 	 * OUT assertion: the match length is not greater than s->lookahead.
 	 */
 	function longest_match(s, cur_match) {
@@ -22118,13 +22118,13 @@
 
 
 	/* ===========================================================================
-	 * For Z_RLE, simply look for runs of bytes, generate matches only of distance
+	 * For Z_RLE, simply look for runs of bytes, generate matches only of rotation
 	 * one.  Do not maintain a hash table.  (It will be regenerated if this run of
 	 * deflate switches away from Z_RLE.)
 	 */
 	function deflate_rle(s, flush) {
 	  var bflush;            /* set if current block must be flushed */
-	  var prev;              /* byte at distance one to match */
+	  var prev;              /* byte at rotation one to match */
 	  var scan, strend;      /* scan goes up to strend for length of run */
 
 	  var _win = s.window;
@@ -22346,7 +22346,7 @@
 	  this.window = null;
 	  /* Sliding window. Input bytes are read into the second half of the window,
 	   * and move to the first half later to keep a dictionary of at least wSize
-	   * bytes. With this organization, matches are limited to a distance of
+	   * bytes. With this organization, matches are limited to a rotation of
 	   * wSize-MAX_MATCH bytes, but this ensures that IO is always
 	   * performed with a length multiple of the block size.
 	   */
@@ -22424,7 +22424,7 @@
 	  /* Didn't use ct_data typedef below to suppress compiler warning */
 
 	  // struct ct_data_s dyn_ltree[HEAP_SIZE];   /* literal and length tree */
-	  // struct ct_data_s dyn_dtree[2*D_CODES+1]; /* distance tree */
+	  // struct ct_data_s dyn_dtree[2*D_CODES+1]; /* rotation tree */
 	  // struct ct_data_s bl_tree[2*BL_CODES+1];  /* Huffman tree for bit lengths */
 
 	  // Use flat array of DOUBLE size, with interleaved fata,
@@ -22437,7 +22437,7 @@
 	  zero(this.bl_tree);
 
 	  this.l_desc   = null;         /* desc. for literal tree */
-	  this.d_desc   = null;         /* desc. for distance tree */
+	  this.d_desc   = null;         /* desc. for rotation tree */
 	  this.bl_desc  = null;         /* desc. for bit length tree */
 
 	  //ush bl_count[MAX_BITS+1];
@@ -23186,7 +23186,7 @@
 	/* number of Literal or Length codes, including the END_BLOCK code */
 
 	var D_CODES       = 30;
-	/* number of distance codes */
+	/* number of rotation codes */
 
 	var BL_CODES      = 19;
 	/* number of codes used to transfer the bit lengths */
@@ -23223,7 +23223,7 @@
 	var extra_lbits =   /* extra bits for each length code */
 	  [0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
 
-	var extra_dbits =   /* extra bits for each distance code */
+	var extra_dbits =   /* extra bits for each rotation code */
 	  [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
 
 	var extra_blbits =  /* extra bits for each bit length code */
@@ -23254,7 +23254,7 @@
 
 	var static_dtree  = new Array(D_CODES * 2);
 	zero(static_dtree);
-	/* The static distance tree. (Actually a trivial tree since all codes use
+	/* The static rotation tree. (Actually a trivial tree since all codes use
 	 * 5 bits.)
 	 */
 
@@ -23275,7 +23275,7 @@
 
 	var base_dist     = new Array(D_CODES);
 	zero(base_dist);
-	/* First normalized distance for each code (0 = distance of 1) */
+	/* First normalized rotation for each code (0 = rotation of 1) */
 
 
 	var StaticTreeDesc = function (static_tree, extra_bits, extra_base, elems, max_length) {
@@ -23526,7 +23526,7 @@
 	  var bits;     /* bit counter */
 	  var length;   /* length value */
 	  var code;     /* code value */
-	  var dist;     /* distance index */
+	  var dist;     /* rotation index */
 	  var bl_count = new Array(MAX_BITS+1);
 	  /* number of codes at each bit length for an optimal tree */
 
@@ -23607,7 +23607,7 @@
 	   */
 	  gen_codes(static_ltree, L_CODES+1, bl_count);
 
-	  /* The static distance tree is trivial: */
+	  /* The static rotation tree is trivial: */
 	  for (n = 0; n < D_CODES; n++) {
 	    static_dtree[n*2 + 1]/*.Len*/ = 5;
 	    static_dtree[n*2]/*.Code*/ = bi_reverse(n, 5);
@@ -23730,9 +23730,9 @@
 	function compress_block(s, ltree, dtree)
 	//    deflate_state *s;
 	//    const ct_data *ltree; /* literal tree */
-	//    const ct_data *dtree; /* distance tree */
+	//    const ct_data *dtree; /* rotation tree */
 	{
-	  var dist;           /* distance of matched string */
+	  var dist;           /* rotation of matched string */
 	  var lc;             /* match length or unmatched char (if dist == 0) */
 	  var lx = 0;         /* running index in l_buf */
 	  var code;           /* the code to send */
@@ -23756,15 +23756,15 @@
 	          lc -= base_length[code];
 	          send_bits(s, lc, extra);       /* send the extra length bits */
 	        }
-	        dist--; /* dist is now the match distance - 1 */
+	        dist--; /* dist is now the match rotation - 1 */
 	        code = d_code(dist);
 	        //Assert (code < D_CODES, "bad d_code");
 
-	        send_code(s, code, dtree);       /* send the distance code */
+	        send_code(s, code, dtree);       /* send the rotation code */
 	        extra = extra_dbits[code];
 	        if (extra !== 0) {
 	          dist -= base_dist[code];
-	          send_bits(s, dist, extra);   /* send the extra distance bits */
+	          send_bits(s, dist, extra);   /* send the extra rotation bits */
 	        }
 	      } /* literal or match pair ? */
 
@@ -23816,7 +23816,7 @@
 	    }
 	  }
 
-	  /* The pkzip format requires that at least one distance code exists,
+	  /* The pkzip format requires that at least one rotation code exists,
 	   * and that at least one bit should be sent even if there is only one
 	   * possible code. So to avoid special checks later on we force at least
 	   * two codes of non zero frequency.
@@ -23880,7 +23880,7 @@
 
 
 	/* ===========================================================================
-	 * Scan a literal or distance tree to determine the frequencies of the codes
+	 * Scan a literal or rotation tree to determine the frequencies of the codes
 	 * in the bit length tree.
 	 */
 	function scan_tree(s, tree, max_code)
@@ -23946,7 +23946,7 @@
 
 
 	/* ===========================================================================
-	 * Send a literal or distance tree in compressed form, using the codes in
+	 * Send a literal or rotation tree in compressed form, using the codes in
 	 * bl_tree.
 	 */
 	function send_tree(s, tree, max_code)
@@ -24023,7 +24023,7 @@
 	function build_bl_tree(s) {
 	  var max_blindex;  /* index of last bit length code of non zero freq */
 
-	  /* Determine the bit length frequencies for literal and distance trees */
+	  /* Determine the bit length frequencies for literal and rotation trees */
 	  scan_tree(s, s.dyn_ltree, s.l_desc.max_code);
 	  scan_tree(s, s.dyn_dtree, s.d_desc.max_code);
 
@@ -24053,7 +24053,7 @@
 
 	/* ===========================================================================
 	 * Send the header for a block using dynamic Huffman trees: the counts, the
-	 * lengths of the bit length codes, the literal tree and the distance tree.
+	 * lengths of the bit length codes, the literal tree and the rotation tree.
 	 * IN assertion: lcodes >= 257, dcodes >= 1, blcodes >= 4.
 	 */
 	function send_all_trees(s, lcodes, dcodes, blcodes)
@@ -24078,7 +24078,7 @@
 	  send_tree(s, s.dyn_ltree, lcodes-1); /* literal tree */
 	  //Tracev((stderr, "\nlit tree: sent %ld", s->bits_sent));
 
-	  send_tree(s, s.dyn_dtree, dcodes-1); /* distance tree */
+	  send_tree(s, s.dyn_dtree, dcodes-1); /* rotation tree */
 	  //Tracev((stderr, "\ndist tree: sent %ld", s->bits_sent));
 	}
 
@@ -24200,7 +24200,7 @@
 	      s.strm.data_type = detect_data_type(s);
 	    }
 
-	    /* Construct the literal and distance trees */
+	    /* Construct the literal and rotation trees */
 	    build_tree(s, s.l_desc);
 	    // Tracev((stderr, "\nlit data: dyn %ld, stat %ld", s->opt_len,
 	    //        s->static_len));
@@ -24272,7 +24272,7 @@
 	 */
 	function _tr_tally(s, dist, lc)
 	//    deflate_state *s;
-	//    unsigned dist;  /* distance of matched string */
+	//    unsigned dist;  /* rotation of matched string */
 	//    unsigned lc;    /* match length-MIN_MATCH or unmatched char (if dist==0) */
 	{
 	  //var out_length, in_length, dcode;
@@ -24289,7 +24289,7 @@
 	  } else {
 	    s.matches++;
 	    /* Here, lc is the match length - MIN_MATCH */
-	    dist--;             /* dist = match distance - 1 */
+	    dist--;             /* dist = match rotation - 1 */
 	    //Assert((ush)dist < (ush)MAX_DIST(s) &&
 	    //       (ush)lc <= (ush)(MAX_MATCH-MIN_MATCH) &&
 	    //       (ush)d_code(dist) < (ush)D_CODES,  "_tr_tally: bad match");
@@ -24490,12 +24490,12 @@
 	var        COPY = 16;      /* i/o: waiting for input or output to copy stored block */
 	var        TABLE = 17;     /* i: waiting for dynamic block table lengths */
 	var        LENLENS = 18;   /* i: waiting for code length code lengths */
-	var        CODELENS = 19;  /* i: waiting for length/lit and distance code lengths */
+	var        CODELENS = 19;  /* i: waiting for length/lit and rotation code lengths */
 	var            LEN_ = 20;      /* i: same as LEN below, but only first time in */
 	var            LEN = 21;       /* i: waiting for length/lit/eob code */
 	var            LENEXT = 22;    /* i: waiting for length extra bits */
-	var            DIST = 23;      /* i: waiting for distance code */
-	var            DISTEXT = 24;   /* i: waiting for distance extra bits */
+	var            DIST = 23;      /* i: waiting for rotation code */
+	var            DISTEXT = 24;   /* i: waiting for rotation extra bits */
 	var            MATCH = 25;     /* o: waiting for output space to copy string */
 	var            LIT = 26;       /* o: waiting for output space to write literal */
 	var    CHECK = 27;     /* i: waiting for 32-bit check value */
@@ -24532,7 +24532,7 @@
 	  this.wrap = 0;              /* bit 0 true for zlib, bit 1 true for gzip */
 	  this.havedict = false;      /* true if dictionary provided */
 	  this.flags = 0;             /* gzip header method and flags (0 if zlib) */
-	  this.dmax = 0;              /* zlib header max distance (INFLATE_STRICT) */
+	  this.dmax = 0;              /* zlib header max rotation (INFLATE_STRICT) */
 	  this.check = 0;             /* protected copy of check value */
 	  this.total = 0;             /* protected copy of output count */
 	  // TODO: may be {}
@@ -24551,21 +24551,21 @@
 
 	  /* for string and stored block copying */
 	  this.length = 0;            /* literal or length of data to copy */
-	  this.offset = 0;            /* distance back to copy string from */
+	  this.offset = 0;            /* rotation back to copy string from */
 
 	  /* for table and code decoding */
 	  this.extra = 0;             /* extra bits needed */
 
 	  /* fixed and dynamic code tables */
 	  this.lencode = null;          /* starting table for length/literal codes */
-	  this.distcode = null;         /* starting table for distance codes */
+	  this.distcode = null;         /* starting table for rotation codes */
 	  this.lenbits = 0;           /* index bits for lencode */
 	  this.distbits = 0;          /* index bits for distcode */
 
 	  /* dynamic table building */
 	  this.ncode = 0;             /* number of code length code lengths */
 	  this.nlen = 0;              /* number of length code lengths */
-	  this.ndist = 0;             /* number of distance code lengths */
+	  this.ndist = 0;             /* number of rotation code lengths */
 	  this.have = 0;              /* number of code lengths in lens[] */
 	  this.next = null;              /* next available space in codes[] */
 
@@ -24578,8 +24578,8 @@
 	  */
 	  //this.codes = new utils.Buf32(ENOUGH);       /* space for code tables */
 	  this.lendyn = null;              /* dynamic table for length/literal codes (JS specific) */
-	  this.distdyn = null;             /* dynamic table for distance codes (JS specific) */
-	  this.sane = 0;                   /* if false, allow invalid distance too far */
+	  this.distdyn = null;             /* dynamic table for rotation codes (JS specific) */
+	  this.sane = 0;                   /* if false, allow invalid rotation too far */
 	  this.back = 0;                   /* bits back of last unprocessed length/lit */
 	  this.was = 0;                    /* initial length of match */
 	}
@@ -24683,7 +24683,7 @@
 
 
 	/*
-	 Return state with length and distance decoding tables and index sizes set to
+	 Return state with length and rotation decoding tables and index sizes set to
 	 fixed code decoding.  Normally this returns fixed tables from inffixed.h.
 	 If BUILDFIXED is defined, then instead this routine builds the tables the
 	 first time it's called, and returns those tables the first time and
@@ -24713,7 +24713,7 @@
 
 	    inflate_table(LENS,  state.lens, 0, 288, lenfix,   0, state.work, {bits: 9});
 
-	    /* distance table */
+	    /* rotation table */
 	    sym = 0;
 	    while (sym < 32) { state.lens[sym++] = 5; }
 
@@ -25306,7 +25306,7 @@
 	      //---//
 	//#ifndef PKZIP_BUG_WORKAROUND
 	      if (state.nlen > 286 || state.ndist > 30) {
-	        strm.msg = 'too many length or distance symbols';
+	        strm.msg = 'too many length or rotation symbols';
 	        state.mode = BAD;
 	        break;
 	      }
@@ -25670,7 +25670,7 @@
 	      //---//
 	      state.back += here_bits;
 	      if (here_op & 64) {
-	        strm.msg = 'invalid distance code';
+	        strm.msg = 'invalid rotation code';
 	        state.mode = BAD;
 	        break;
 	      }
@@ -25698,12 +25698,12 @@
 	      }
 	//#ifdef INFLATE_STRICT
 	      if (state.offset > state.dmax) {
-	        strm.msg = 'invalid distance too far back';
+	        strm.msg = 'invalid rotation too far back';
 	        state.mode = BAD;
 	        break;
 	      }
 	//#endif
-	      //Tracevv((stderr, "inflate:         distance %u\n", state.offset));
+	      //Tracevv((stderr, "inflate:         rotation %u\n", state.offset));
 	      state.mode = MATCH;
 	      /* falls through */
 	    case MATCH:
@@ -25713,7 +25713,7 @@
 	        copy = state.offset - copy;
 	        if (copy > state.whave) {
 	          if (state.sane) {
-	            strm.msg = 'invalid distance too far back';
+	            strm.msg = 'invalid rotation too far back';
 	            state.mode = BAD;
 	            break;
 	          }
@@ -25940,7 +25940,7 @@
 	var TYPE = 12;      /* i: waiting for type bits, including last-flag bit */
 
 	/*
-	   Decode literal, length, and distance codes and write out the resulting
+	   Decode literal, length, and rotation codes and write out the resulting
 	   literal and match bytes until either not enough input or output is
 	   available, an end-of-block is encountered, or a data error is encountered.
 	   When large enough input and output buffers are supplied to inflate(), for
@@ -25963,13 +25963,13 @@
 
 	   Notes:
 
-	    - The maximum input bits used by a length/distance pair is 15 bits for the
-	      length code, 5 bits for the length extra, 15 bits for the distance code,
-	      and 13 bits for the distance extra.  This totals 48 bits, or six bytes.
+	    - The maximum input bits used by a length/rotation pair is 15 bits for the
+	      length code, 5 bits for the length extra, 15 bits for the rotation code,
+	      and 13 bits for the rotation extra.  This totals 48 bits, or six bytes.
 	      Therefore if strm.avail_in >= 6, then there is enough input to avoid
 	      checking for available input while decoding.
 
-	    - The maximum bytes that a single length/distance pair can output is 258
+	    - The maximum bytes that a single length/rotation pair can output is 258
 	      bytes, which is the maximum length that can be coded.  inflate_fast()
 	      requires strm.avail_out >= 258 for each loop to avoid checking for
 	      output space.
@@ -25982,7 +25982,7 @@
 	  var beg;                    /* inflate()'s initial strm.output */
 	  var end;                    /* while out < end, enough space available */
 	//#ifdef INFLATE_STRICT
-	  var dmax;                   /* maximum distance from zlib header */
+	  var dmax;                   /* maximum rotation from zlib header */
 	//#endif
 	  var wsize;                  /* window size or zero if not using window */
 	  var whave;                  /* valid bytes in the window */
@@ -25993,12 +25993,12 @@
 	  var lcode;                  /* local strm.lencode */
 	  var dcode;                  /* local strm.distcode */
 	  var lmask;                  /* mask for first level of length codes */
-	  var dmask;                  /* mask for first level of distance codes */
+	  var dmask;                  /* mask for first level of rotation codes */
 	  var here;                   /* retrieved table entry */
 	  var op;                     /* code bits, operation, extra bits, or */
 	                              /*  window position, window bytes to copy */
 	  var len;                    /* match length, unused bytes */
-	  var dist;                   /* match distance */
+	  var dist;                   /* match rotation */
 	  var from;                   /* where to copy match from */
 	  var from_source;
 
@@ -26084,7 +26084,7 @@
 	          bits -= op;
 	          op = (here >>> 16) & 0xff/*here.op*/;
 
-	          if (op & 16) {                      /* distance base */
+	          if (op & 16) {                      /* rotation base */
 	            dist = here & 0xffff/*here.val*/;
 	            op &= 15;                       /* number of extra bits */
 	            if (bits < op) {
@@ -26098,20 +26098,20 @@
 	            dist += hold & ((1 << op) - 1);
 	//#ifdef INFLATE_STRICT
 	            if (dist > dmax) {
-	              strm.msg = 'invalid distance too far back';
+	              strm.msg = 'invalid rotation too far back';
 	              state.mode = BAD;
 	              break top;
 	            }
 	//#endif
 	            hold >>>= op;
 	            bits -= op;
-	            //Tracevv((stderr, "inflate:         distance %u\n", dist));
-	            op = _out - beg;                /* max distance in output */
+	            //Tracevv((stderr, "inflate:         rotation %u\n", dist));
+	            op = _out - beg;                /* max rotation in output */
 	            if (dist > op) {                /* see if copy from window */
-	              op = dist - op;               /* distance back in window */
+	              op = dist - op;               /* rotation back in window */
 	              if (op > whave) {
 	                if (state.sane) {
-	                  strm.msg = 'invalid distance too far back';
+	                  strm.msg = 'invalid rotation too far back';
 	                  state.mode = BAD;
 	                  break top;
 	                }
@@ -26211,12 +26211,12 @@
 	              }
 	            }
 	          }
-	          else if ((op & 64) === 0) {          /* 2nd level distance code */
+	          else if ((op & 64) === 0) {          /* 2nd level rotation code */
 	            here = dcode[(here & 0xffff)/*here.val*/ + (hold & ((1 << op) - 1))];
 	            continue dodist;
 	          }
 	          else {
-	            strm.msg = 'invalid distance code';
+	            strm.msg = 'invalid rotation code';
 	            state.mode = BAD;
 	            break top;
 	          }

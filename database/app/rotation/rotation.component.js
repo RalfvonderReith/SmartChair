@@ -76,7 +76,7 @@ var PressureComponent = (function () {
     };
     PressureComponent.prototype.drawCanvasPressure = function () {
         var ctx = this.pressureCanvas.nativeElement.getContext("2d");
-        //some variables to scale context correctly to canvas
+        //some variables to SCALE context correctly to canvas
         ctx.canvas.height = 2 * ctx.canvas.width; //keep ratio to 2:3
         var disY = ctx.canvas.height / 6;
         var disX = ctx.canvas.width / 3;

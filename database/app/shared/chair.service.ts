@@ -61,6 +61,23 @@ export class ChairService {
         return observable;
     }
 
+    getRotation(whereUUID) {
+        this.socket.disconnect()
+        this.socket = io('http://localhost:8000');
+        let observable = new Observable(observer => {
+            this.socket.emit('getRotation', whereUUID);
+
+            this.socket.on('rotation', function (data) {
+                //console.log('getTemperature() in chair.service; only data: ' + data);
+                observer.next(data);
+            });
+            return () => {
+                this.socket.disconnect();
+            };
+        });
+        return observable;
+    }
+
     getFirstXTemperatures(amount, whereUUID) {
         this.socket.disconnect()
         this.socket = io('http://localhost:8000');

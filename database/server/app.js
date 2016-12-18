@@ -148,12 +148,34 @@ function sendTemperature(socket, whereUUID) {
         t: {}
     }
     for(var i = 0; i < 1; i++) {
-        data.t[i] = result.temp;
+        data.t[i] = result[0];
     }
     //and then send it
     socket.emit('temperature', JSON.stringify(data));
 }).catch(err => {
         console.log("sendTemperature: " + err);
+    res.status(500).send(err.stack)
+})
+}
+
+function sendRotation(socket, whereUUID) {
+    const query = 'select * from gyroscope where ChairUUID = \'' + whereUUID + '\' order by desc limit 1';
+    dbClient.query(query).then(result => {
+        //receive data and format it
+        result = result[0];
+    var data =
+    {
+        cid: result.ChairUUID,
+        time: new Date(result.time),
+        r: {}
+    }
+    for(var i = 0; i < 1; i++) {
+        data.r[i] = result[0];
+    }
+    //and then send it
+    socket.emit('rotation', JSON.stringify(data));
+}).catch(err => {
+        console.log("sendRotation: " + err);
     res.status(500).send(err.stack)
 })
 }
@@ -205,4 +227,37 @@ function sendChairs(socket) {
         console.log("sendChairs: " + err);
     res.status(500).send(err.stack)
 })
+}
+//helper functions
+/*
+ * computation of rotation angle
+ */
+# Scaling Factor Acceleration
+const SCALE = 16384.0;
+
+
+function dist(a, b) {
+    return math.sqrt((a * a) + (b * b));
+}
+
+function get_y_rotation(x, y, z) {
+    var radians = math.atan2(x, dist(y, z));
+    return -radians;
+}
+
+
+function get_x_rotation(x, y, z) {
+    var radians = math.atan2(y, dist(x, z));
+    return radians;
+}
+
+
+function get_rotation_values() {
+    var rotate_list = [];
+    var acceleration_x_out = acceleration_x_out / SCALE;
+    var acceleration_y_out = acceleration_y_out / SCALE;
+    var acceleration_z_out = acceleration_z_out / SCALE;
+
+    var x_rotation = get_x_rotation(acceleration_x_out, acceleration_y_out, acceleration_z_out);
+    var y_rotation = get_y_rotation(acceleration_x_out, acceleration_y_out, acceleration_z_out);
 }
